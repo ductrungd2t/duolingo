@@ -18,7 +18,10 @@
 <footer><span><i class="dot"></i> Tài khoản trung</span><span>Chuyển app hoặc khóa màn hình sẽ tạm dừng lượt chạy.</span></footer>
 </main>
 <dialog id="settings"><form id="settings-form"><div class="card-heading"><h2>Cài đặt kết nối</h2><button id="settings-close" type="button" class="text-button" aria-label="Đóng cài đặt">✕</button></div><p class="muted">Chỉ dùng tài khoản trung · ID 787468231</p>
-<label>Token Duolingo<input id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Dán giá trị jwt_token của trung"></label><p class="fine">Token chỉ giữ trong bộ nhớ của trang. Tải lại hoặc đóng trang sẽ cần nhập lại. Không đưa token lên GitHub.</p>
+<div class="quick-token"><div><strong>Chọn token có sẵn</strong><span id="quick-token-status">Token được lưu trên trình duyệt này</span></div></div>
+<div class="token-picker"><select id="saved-token-select" aria-label="Chọn token đã lưu"><option value="">— Chọn token —</option></select><button type="button" id="quick-token" class="outline">Sử dụng</button></div>
+<button id="add-token" type="button" class="text-button">+ Thêm token mới</button>
+<label id="token-input-label">Token Duolingo<input id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Dán giá trị jwt_token của trung"></label><label class="remember-choice"><input id="remember-token" type="checkbox"> Lưu token vào danh sách trên trình duyệt này</label><p class="fine">Token được ghi nhớ theo tên trong bộ nhớ trình duyệt (localStorage), không nằm trong mã nguồn hoặc GitHub. <strong>Không bật trên máy dùng chung:</strong> các ứng dụng/script cùng nguồn website có thể truy cập token. Token không được thêm vào GitHub. Nếu không bật, token chỉ giữ đến khi tải lại trang.</p>
 <details><summary>Cấu hình máy chủ API</summary><label>Địa chỉ API<input id="api-base" type="url" placeholder="Để trống nếu dùng chung tên miền"></label><p class="fine">Nếu mở trên GitHub Pages, nhập URL Render của bạn. Chỉ dùng máy chủ do bạn quản lý: token sẽ được gửi đến địa chỉ này.</p></details>
 <p id="settings-error" class="error" role="alert"></p><div class="settings-actions"><button id="forget" type="button" class="danger">Xóa token</button><button type="submit" class="primary">Lưu kết nối</button></div>
 </form></dialog></body></html>
