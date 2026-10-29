@@ -52,7 +52,7 @@ App không tự gửi lại lượt chạy lỗi. Nếu đang khởi động má
    nhập `https://ten-ban-chon.onrender.com`, nhập token rồi lưu.
 
 Chỉ nhập API URL do bạn quản lý vì token được gửi qua máy chủ đó.
-URL API được nhớ trong trình duyệt, token thì không.
+URL API được nhớ trong trình duyệt; token chỉ được nhớ nếu bạn bật tùy chọn **Ghi nhớ Token Trung**.
 
 ## Dùng trên iPhone
 
@@ -62,7 +62,7 @@ Không cần ký app hay làm mới chữ ký 7 ngày.
 
 1. Bấm **Cài đặt**, dán riêng giá trị `jwt_token` của `cookies_trung` từ
    `duo2.py`, không lấy dấu nháy hoặc tiền tố `Bearer`.
-2. Token chỉ nằm trong bộ nhớ phiên trang, không được lưu localStorage,
+2. Mặc định token chỉ nằm trong bộ nhớ phiên trang; nếu người dùng bật Ghi nhớ thì token được lưu tại localStorage,
    cookie của web hay vào GitHub. Sau khi tải lại trang cần nhập lại.
 3. Bấm **Làm mới** để xem tổng XP hôm nay. Dữ liệu có thể cập nhật chậm.
 4. Đặt số lượt, khoảng nghỉ và bấm **Chạy điểm**.
@@ -105,3 +105,13 @@ Chỉ tải mã trong gói web này.
 Tài liệu: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages),
 [Render Python](https://render.com/docs/deploy-flask),
 [Render Free](https://render.com/docs/free).
+
+## Token Trung: chọn nhanh
+
+Trong **Cài đặt**, nhập JWT tài khoản Trung, chọn **Ghi nhớ Token Trung trên trình duyệt này** rồi bấm **Lưu kết nối**. Lần sau, bấm **Token Trung → Sử dụng** để chọn token đã ghi nhớ và tự làm mới XP (qua API). Nếu token hết hạn, cần nhập token mới. **Xóa token** xóa cả token đang dùng và token ghi nhớ.
+
+**Lưu ý bảo mật:** ghi nhớ token là tùy chọn; token được lưu ở `localStorage` dưới dạng văn bản, không được mã hóa, nên có thể bị đọc bởi người sử dụng thiết bị hoặc script chạy cùng nguồn website. Chỉ bật trên thiết bị cá nhân tin cậy; không bật trên thiết bị dùng chung. Token không xuất hiện trong mã nguồn/GitHub. Nếu không bật tùy chọn này, token vẫn chỉ nằm trong bộ nhớ của trang như trước.
+
+
+### Danh sách token trên thiết bị
+Trong Cài đặt, chọn một token trong danh sách rồi bấm **Sử dụng**, hoặc bấm **+ Thêm token mới**, nhập JWT và chọn lưu. Các token lưu trong localStorage của trình duyệt và không đồng bộ giữa thiết bị hoặc các miền website. Không đưa JWT vào mã nguồn hay GitHub. Nút Xóa token xóa mục đang chọn.
