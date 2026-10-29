@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Duo Trung — Điểm & tiến độ</title><meta name="theme-color" content="#155e49"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Duo Trung">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icon.png"><link rel="icon" href="./icon.png"><link rel="stylesheet" href="./styles.css"><script type="module" src="./app.js"></script></head>
+<body><main class="shell">
+<header><a class="brand" href="./"><span class="brand-icon">ϟ</span>Duo Trung<span class="web-tag">WEB</span></a><button id="settings-open" class="outline">Cài đặt</button></header>
+<section class="intro"><p class="eyebrow">KHÔNG GIAN CỦA TRUNG</p><h1>Mỗi ngày, một chút tiến bộ.</h1><p>Theo dõi điểm hôm nay và điều khiển các lượt chạy ở cùng một nơi.</p></section>
+<div id="notice" class="notice" role="status" hidden></div>
+<section class="dashboard">
+<article class="card xp-card"><div class="card-heading"><span class="eyebrow">ĐIỂM HÔM NAY</span><span class="pill">UTC+7 · Việt Nam</span></div><div class="xp-value"><strong id="xp">—</strong><span>XP</span></div><p id="xp-detail">Chưa tải dữ liệu hôm nay</p><div class="xp-bottom"><span id="sessions">Toàn tài khoản trung</span><button id="refresh" class="outline">↻ Làm mới</button></div><p class="fine" id="xp-message">Nhập token trong Cài đặt để bắt đầu.</p></article>
+<article class="card run-card"><div class="card-heading"><h2>Điều khiển lượt chạy</h2><span id="state-pill" class="pill">Sẵn sàng</span></div>
+<div class="fields"><label>Số lượt<input id="count" type="number" inputmode="numeric" min="1" max="10000" value="10"></label><label>Khoảng nghỉ <span>(giây)</span><input id="interval" type="number" inputmode="decimal" min="1" max="3600" step="0.5" value="2"></label></div>
+<div class="progress-label"><span id="run-status" aria-live="polite">Sẵn sàng bắt đầu</span><strong id="run-count">0 / 10</strong></div><progress id="progress" max="10" value="0"></progress>
+<div class="controls"><button id="start" class="primary">▶ Chạy điểm</button><button id="pause" class="outline" disabled>Tạm dừng</button><button id="stop" class="danger" disabled>Dừng</button></div>
+<p class="fine">Tạm dừng sau yêu cầu đang gửi. HTTP thành công chưa đảm bảo XP tăng — hãy làm mới điểm để kiểm tra.</p></article>
+</section>
+<section class="card log-card"><div class="card-heading"><div><p class="eyebrow">THEO DÕI HOẠT ĐỘNG</p><h2>Nhật ký</h2></div><button id="clear-log" class="text-button">Xóa nhật ký</button></div><ol id="logs" aria-live="polite"><li class="empty">Chưa có lượt chạy nào. Bạn có thể bắt đầu khi đã kết nối tài khoản.</li></ol></section>
+<footer><span><i class="dot"></i> Tài khoản trung</span><span>Chuyển app hoặc khóa màn hình sẽ tạm dừng lượt chạy.</span></footer>
+</main>
+<dialog id="settings"><form id="settings-form"><div class="card-heading"><h2>Cài đặt kết nối</h2><button id="settings-close" type="button" class="text-button" aria-label="Đóng cài đặt">✕</button></div><p class="muted">Chỉ dùng tài khoản trung · ID 787468231</p>
+<label>Token Duolingo<input id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Dán giá trị jwt_token của trung"></label><p class="fine">Token chỉ giữ trong bộ nhớ của trang. Tải lại hoặc đóng trang sẽ cần nhập lại. Không đưa token lên GitHub.</p>
+<details><summary>Cấu hình máy chủ API</summary><label>Địa chỉ API<input id="api-base" type="url" placeholder="Để trống nếu dùng chung tên miền"></label><p class="fine">Nếu mở trên GitHub Pages, nhập URL Render của bạn. Chỉ dùng máy chủ do bạn quản lý: token sẽ được gửi đến địa chỉ này.</p></details>
+<p id="settings-error" class="error" role="alert"></p><div class="settings-actions"><button id="forget" type="button" class="danger">Xóa token</button><button type="submit" class="primary">Lưu kết nối</button></div>
+</form></dialog></body></html>
