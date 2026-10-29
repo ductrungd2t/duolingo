@@ -4,6 +4,50 @@ let token = '', loading = false, apiBase = '';
 try { apiBase = localStorage.getItem('duo-api-base') || ''; } catch {}
 $('api-base').value = apiBase;
 const dialog = $('settings');
+const TOKEN_KEY = 'duo-trung-remembered-token';
+function validToken(value) {
+  const parts = value.trim().split('.');
+  if (parts.length !== 3) throw new Error('Token không đúng định dạng JWT.');
+  let payload;
+  try { payload = JSON.parse(atob(parts[1].replaceAll('-', '+').replaceAll('_', '/'))); }
+  catch { throw new Error('Không đọc được token JWT.'); }
+  if (String(payload.sub) !== '787468231') throw new Error('Token phải thuộc tài khoản trung.');
+  if (typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now()) throw new Error('Token Trung đã hết hạn. Vui lòng nhập token mới.');
+  return value.trim();
+}
+const TOKENS_KEY = 'duo-trung-saved-tokens-v2';
+function allSavedTokens() {
+  try {
+    const items = JSON.parse(localStorage.getItem(TOKENS_KEY) || '[]');
+    return Array.isArray(items) ? items.filter(x => typeof x.name === 'string' && typeof x.token === 'string') : [];
+  } catch { return []; }
+}
+function saveTokens(items) { localStorage.setItem(TOKENS_KEY, JSON.stringify(items)); }
+function rememberedToken() {
+  const selected = $('saved-token-select')?.value;
+  return allSavedTokens().find(x => x.name === selected)?.token || allSavedTokens()[0]?.token || (function(){ try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } })();
+}
+function updateQuickToken() {
+  const select = $('saved-token-select');
+  const current = select.value;
+  const items = allSavedTokens();
+  select.replaceChildren(new Option('— Chọn token —', ''));
+  for (const item of items) select.add(new Option(item.name, item.name));
+  if (items.some(item => item.name === current)) select.value = current;
+  else if (items.length) select.value = items[0].name;
+  $('quick-token-status').textContent = items.length ? `${items.length} token đã lưu trên thiết bị này` : 'Chưa có token đã lưu trên thiết bị này';
+  $('quick-token').disabled = runner.running || loading || !items.length;
+  $('remember-token').checked = items.length > 0;
+}
+function setConnection(nextToken, base) {
+  token = nextToken; apiBase = base;
+  try { localStorage.setItem('duo-api-base', base); } catch {}
+  $('token').value = ''; $('settings-error').textContent = '';
+  $('xp').textContent = '—'; $('xp-detail').textContent = 'Sẵn sàng tải dữ liệu';
+  $('xp-message').textContent = 'Đã chọn Token Trung. Bấm Làm mới để kiểm tra kết nối API và xem XP.';
+  notice(''); dialog.close(); render(runner); updateQuickToken(); log('Đã chọn Token Trung.');
+}
+
 function notice(message) { $('notice').textContent = message; $('notice').hidden = !message; }
 function log(message) {
   $('logs').querySelector('.empty')?.remove();
@@ -69,17 +113,13 @@ $('refresh').addEventListener('click', async () => {
     $('xp-message').textContent = error.message; log(error.message);
   } finally { loading = false; $('refresh').textContent = '↻ Làm mới'; render(runner); }
 });
-$('settings-open').addEventListener('click', () => dialog.showModal());
+$('settings-open').addEventListener('click', () => { updateQuickToken(); dialog.showModal(); });
 $('settings-close').addEventListener('click', () => dialog.close());
 $('settings-form').addEventListener('submit', event => {
   event.preventDefault();
   try {
     if (runner.running || loading) throw new Error('Chờ tác vụ hiện tại hoàn tất.');
-    const nextToken = $('token').value.trim() || token;
-    const parts = nextToken.split('.');
-    if (parts.length !== 3) throw new Error('Token không đúng định dạng JWT.');
-    const payload = JSON.parse(atob(parts[1].replaceAll('-', '+').replaceAll('_', '/')));
-    if (String(payload.sub) !== '787468231') throw new Error('Token phải thuộc tài khoản trung.');
+    const nextToken = validToken($('token').value.trim() || token);
     let base = $('api-base').value.trim().replace(/\/$/, '');
     if (base) {
       const url = new URL(base);
@@ -87,20 +127,42 @@ $('settings-form').addEventListener('submit', event => {
       if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost','127.0.0.1'].includes(url.hostname))) throw new Error('Máy chủ online phải dùng HTTPS.');
       base = url.origin;
     }
-    token = nextToken; apiBase = base;
-    try { localStorage.setItem('duo-api-base', base); } catch {}
-    $('token').value = ''; $('settings-error').textContent = '';
-    $('xp').textContent = '—'; $('xp-detail').textContent = 'Sẵn sàng tải dữ liệu';
-    $('xp-message').textContent = 'Đã kết nối token trung. Bấm Làm mới để xem XP.';
-    notice(''); dialog.close(); render(runner); log('Đã lưu kết nối cho phiên hiện tại.');
+    try {
+      if ($('remember-token').checked) {
+        const items = allSavedTokens();
+        const index = items.findIndex(x => x.token === nextToken);
+        if (index === -1) {
+          const name = 'Token Trung ' + (items.length + 1);
+          items.push({name, token: nextToken});
+        }
+        saveTokens(items);
+      }
+    } catch { if ($('remember-token').checked) throw new Error('Không thể lưu token. Kiểm tra quyền lưu trữ trình duyệt.'); }
+    setConnection(nextToken, base);
   } catch (error) { $('settings-error').textContent = error.message || 'Thông tin kết nối không hợp lệ.'; }
 });
+$('quick-token').addEventListener('click', () => {
+  if (runner.running || loading) return;
+  try {
+    const selectedItem = allSavedTokens().find(x => x.name === $('saved-token-select').value);
+    const saved = selectedItem?.token;
+    if (!saved) throw new Error('Hãy chọn một token đã lưu hoặc thêm mới.');
+    const selected = validToken(saved);
+    // The quick action uses the currently configured API base; no need to submit the form.
+    setConnection(selected, apiBase);
+    $('refresh').click();
+  } catch (error) {
+    $('settings-error').textContent = error.message;
+  }
+});
+$('add-token').addEventListener('click', () => { $('token').value = ''; $('remember-token').checked = true; $('token').focus(); });
 $('forget').addEventListener('click', () => {
   if (runner.running || loading) return;
-  token = ''; $('token').value = ''; $('xp').textContent = '—';
+  token = ''; try { const name = $('saved-token-select').value; saveTokens(allSavedTokens().filter(x => x.name !== name)); localStorage.removeItem(TOKEN_KEY); } catch {}
+  $('token').value = ''; $('xp').textContent = '—';
   $('xp-detail').textContent = 'Chưa tải dữ liệu hôm nay'; $('sessions').textContent = 'Toàn tài khoản trung';
   $('xp-message').textContent = 'Đã xóa token. Nhập lại để dùng.';
-  $('settings-error').textContent = ''; dialog.close(); render(runner); log('Đã xóa token khỏi phiên hiện tại.');
+  $('settings-error').textContent = ''; dialog.close(); render(runner); updateQuickToken(); log('Đã xóa Token Trung khỏi trang và bộ nhớ trình duyệt.');
 });
 $('clear-log').addEventListener('click', () => { $('logs').replaceChildren(); });
 document.addEventListener('visibilitychange', () => {
@@ -111,5 +173,27 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('beforeunload', event => {
   if (runner.running) { event.preventDefault(); event.returnValue = ''; }
 });
+// Restore a remembered token after reload/reopening the same site.
+// Do not erase it on a transient API/network failure.
+// Migrate previously remembered token, if present, into the named list.
+try {
+  const legacy = localStorage.getItem(TOKEN_KEY);
+  if (legacy && !allSavedTokens().some(x => x.token === legacy)) {
+    saveTokens([...allSavedTokens(), {name:'Token Trung',token:legacy}]);
+    localStorage.removeItem(TOKEN_KEY);
+  }
+} catch {}
+const savedAtStartup = rememberedToken();
+if (savedAtStartup) {
+  try {
+    token = validToken(savedAtStartup);
+    $('xp-message').textContent = 'Đã khôi phục Token Trung từ trình duyệt. Bấm Làm mới để kiểm tra API và xem XP.';
+    log('Đã khôi phục Token Trung đã ghi nhớ.');
+  } catch (error) {
+    $('xp-message').textContent = error.message;
+    log(error.message);
+  }
+}
 render(runner);
+updateQuickToken();
 if (location.hostname.endsWith('.github.io') && !apiBase) notice('Giao diện đang ở GitHub Pages. Nhập URL máy chủ Render trong Cài đặt để chạy điểm và xem XP.');
